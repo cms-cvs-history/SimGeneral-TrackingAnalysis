@@ -1,0 +1,4 @@
+module trackingtruth = TrackingTruthProducer {
+  double distanceCut = 0.003
+  vstring dataLabels = {"VtxSmeared","PythiaSource"} 
+}
