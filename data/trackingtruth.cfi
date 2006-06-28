@@ -1,4 +1,7 @@
 module trackingtruth = TrackingTruthProducer {
-  double distanceCut = 0.003
-  vstring dataLabels = {"VtxSmeared","PythiaSource"} 
+  double vertexDistanceCut = 0.003
+  vstring HepMCDataLabels = {"VtxSmeared","PythiaSource"} 
+  double volumeRadius = 1200   
+  double volumeZ      = 3000
+  bool discardOutVolume = false 
 }
