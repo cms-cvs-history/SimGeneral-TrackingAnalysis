@@ -1,3 +1,4 @@
+<use name=SimGeneral/TrackingAnalysis>
 <use name=SimDataFormats/TrackingAnalysis>
 <use name=SimDataFormats/Track>
 <use name=SimDataFormats/Vertex>
@@ -7,5 +8,12 @@
 
 <library file="TrackingTruthTest.cc,SealModule.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
+  <use name=SimGeneral/TrackingAnalysis>
+  <use name=SimDataFormats/TrackingAnalysis>
+  <use name=SimDataFormats/Track>
+  <use name=SimDataFormats/Vertex>
+  <use name=SimDataFormats/HepMCProduct>
+  <use name=clhep>
+  <use name=geant4>
   <flags SEAL_PLUGIN_NAME="SimGeneralTrackingAnalysis_test">
 </library>

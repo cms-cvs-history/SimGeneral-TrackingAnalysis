@@ -33,6 +33,20 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const TrackingVertexCollection   *tVC = TruthVertexContainer.product();
   cout << "Found " << tPC->size() << " tracks and " << tVC->size() << " vertices."<<endl;
   
+// Loop over TrackingParticle's  
+   
+  for (TrackingParticleCollection::const_iterator t = tPC -> begin(); 
+      t != tPC -> end(); ++t) {
+    cout << " Track" << endl;
+    for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
+         hepT !=  t -> genParticle_end(); ++hepT) {
+      cout << "  Gen Track PDG ID   " <<  (*hepT)->pdg_id() << endl;    
+      cout << "  Gen Track Momentum " << ((*hepT)->momentum()).mag() << endl;    
+    }
+  }  
+ 
+// Loop over TrackingVertex's  
+  
   for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC ->
       end(); ++v) {
     cout << " Vertex Position " << v-> position() << endl;
@@ -43,7 +57,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     }  
   }  
   
-  
+  cout << "Done " << endl;
 //  edm::Handle<edm::EmbdSimTrackContainer> G4TrkContainer;
 //  e.getByType(G4TrkContainer);
   
