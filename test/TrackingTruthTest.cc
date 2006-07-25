@@ -101,7 +101,11 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << "  Track PDG ID " << (*track)->pdgId() << endl;
       for (TrackingParticle::g4t_iterator g4T = (*track) -> g4Track_begin();
            g4T != (*track) -> g4Track_end(); ++g4T) {
-        cout << "   G4 Track Momentum " << (*g4T)->momentum() << endl;    
+        cout << "   G4  Track Momentum " << (*g4T)->momentum() << endl;    
+      }
+      for (TrackingParticle::genp_iterator genT = (*track) -> genParticle_begin();
+           genT != (*track) -> genParticle_end(); ++genT) {
+        cout << "   Gen Track Momentum " << (*genT)->momentum() << endl;    
       }
     }     
   }  
