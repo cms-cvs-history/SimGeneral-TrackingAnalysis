@@ -55,7 +55,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     }
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
          g4T !=  t -> g4Track_end(); ++g4T) {
-      cout << "  G4  Track Momentum " << (*g4T)->momentum() << endl;    
+      cout << "  G4  Track Momentum " << (*g4T)->momentum() << endl;   
     }
   }  
  
