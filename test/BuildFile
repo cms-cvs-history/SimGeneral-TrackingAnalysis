@@ -5,7 +5,7 @@
 <use name=clhep>
 <use name=geant4>
 
-<library file="SealModule.cc,MCAccessTest.cc" name=SimDataFormatsTrackingAnalysis_test>
+<library file="SealModule.cc" name=SimDataFormatsTrackingAnalysis_test>
   <use name=FWCore/Framework>
   <flags SEAL_PLUGIN_NAME="SimDataFormatsTrackingAnalysis_test">
 </library>
