@@ -40,17 +40,16 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const TrackVertexAssociationCollection   *tVMap = trackToVertexHandle.product();
 
   cout << "Found " << tPC->size() << " tracks and " << tVC->size() << " vertices."<<endl;
-  cout << "Found " << vTMap -> size() << " vertex to track associations " <<
-      endl;  
+  cout << "Found " << vTMap -> size() << " vertex to track associations " << endl;  
 // Loop over TrackingParticle's  
   int count = 0; 
   
-  cout << "Dumping sample track info" << endl;
+  cout << "Dumping out sample track info" << endl;
   for (TrackingParticleCollection::const_iterator t = tPC -> begin(); 
       t != tPC -> end(); ++t, ++count) {
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
          hepT !=  t -> genParticle_end(); ++hepT) {
-      cout << "  Gen Track PDG ID   " <<  (*hepT)->pdg_id() << endl;    
+      cout << " Gen Track PDG ID   " <<  (*hepT)->pdg_id() << endl;    
       cout << "  Gen Track Momentum " << (*hepT)->momentum() << endl;    
     }
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
@@ -58,6 +57,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << "  G4  Track Momentum " << (*g4T)->momentum() << endl;   
     }
   }  
+  cout << "  Finished dumping track info" << endl;
  
 // Loop over TrackingVertex's  
   
@@ -66,6 +66,17 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC ->
       end(); ++v, ++vIndex) {
     cout << " Vertex Position " << v-> position() << endl; 
+
+/*
+    TrackingParticleRef sourceTrack = v-> sourceTrack();
+    if (sourceTrack.isNonnull()) {
+       for (TrackingParticle::g4t_iterator g4T = (*sourceTrack).g4Track_begin();
+            g4T != (*sourceTrack).g4Track_end(); ++g4T) {
+         cout << " Source Track Momentum " << (*g4T)->momentum() << endl;    
+       }
+    }
+*/
+    
     VertexTrackAssociationCollection::const_iterator f = vTMap->find(TrackingVertexRef(TruthVertexContainer,vIndex));
     TrackingParticleRefVector tracks = f -> val;
     for (TrackingParticleContainer::const_iterator track = tracks.begin();
@@ -76,7 +87,8 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
         cout << "   G4 Track Momentum " << (*g4T)->momentum() << endl;    
       }
     }     
-/*    for (TrackingParticleContainer::iterator t =  v -> tracks_begin(); 
+
+    /*    for (TrackingParticleContainer::iterator t =  v -> tracks_begin(); 
                                              t != v -> tracks_end(); ++t) {
       cout << "  Track PDG ID " << (*t)->pdgId() << endl;
       // Get info from SimTrack
@@ -126,7 +138,9 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << "  Vertex Position " << (*vertex)->position() << endl;
     }     
   }  
-      
   cout << "Done with event" << endl;
   
 }
+
+DEFINE_SEAL_MODULE();
+DEFINE_ANOTHER_FWK_MODULE(TrackingTruthTest);
