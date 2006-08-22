@@ -27,20 +27,13 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
 
   edm::Handle<TrackingParticleCollection>  TruthTrackContainer ;
   edm::Handle<TrackingVertexCollection>    TruthVertexContainer;
-  edm::Handle<VertexTrackAssociationCollection>    vertexToTrackHandle;
-  edm::Handle<TrackVertexAssociationCollection>    trackToVertexHandle;
   event.getByType(TruthTrackContainer );
   event.getByType(TruthVertexContainer);
-  event.getByType(vertexToTrackHandle);
-  event.getByType(trackToVertexHandle);
 
   const TrackingParticleCollection *tPC   = TruthTrackContainer.product();
   const TrackingVertexCollection   *tVC   = TruthVertexContainer.product();
-  const VertexTrackAssociationCollection   *vTMap = vertexToTrackHandle.product();
-  const TrackVertexAssociationCollection   *tVMap = trackToVertexHandle.product();
 
   cout << "Found " << tPC->size() << " tracks and " << tVC->size() << " vertices."<<endl;
-  cout << "Found " << vTMap -> size() << " vertex to track associations " << endl;  
 // Loop over TrackingParticle's  
   int count = 0; 
   
@@ -77,16 +70,6 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     }
 */
     
-    VertexTrackAssociationCollection::const_iterator f = vTMap->find(TrackingVertexRef(TruthVertexContainer,vIndex));
-    TrackingParticleRefVector tracks = f -> val;
-    for (TrackingParticleContainer::const_iterator track = tracks.begin();
-         track != tracks.end(); ++track) {
-      cout << "  Track PDG ID " << (*track)->pdgId() << endl;
-      for (TrackingParticle::g4t_iterator g4T = (*track) -> g4Track_begin();
-           g4T != (*track) -> g4Track_end(); ++g4T) {
-        cout << "   G4 Track Momentum " << (*g4T)->momentum() << endl;    
-      }
-    }     
 
     /*    for (TrackingParticleContainer::iterator t =  v -> tracks_begin(); 
                                              t != v -> tracks_end(); ++t) {
@@ -99,46 +82,6 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     }  
 */
   }  
-  
-// Loop over vertex to track map
-  cout << "Getting info from vertex to track map" << endl;
-  for (VertexTrackAssociationCollection::const_iterator v2t = vTMap->begin(); v2t
-      != vTMap->end(); ++v2t) {
-    TrackingVertexRef         vertex = v2t -> key;
-    
-    TrackingParticleRefVector tracks = v2t -> val;
-    cout << " Vertex Position " << vertex->position() << endl;
-    for (TrackingParticleContainer::const_iterator track = tracks.begin();
-         track != tracks.end(); ++track) {
-      cout << "  Track PDG ID " << (*track)->pdgId() << endl;
-      for (TrackingParticle::g4t_iterator g4T = (*track) -> g4Track_begin();
-           g4T != (*track) -> g4Track_end(); ++g4T) {
-        cout << "   G4  Track Momentum " << (*g4T)->momentum() << endl;    
-      }
-      for (TrackingParticle::genp_iterator genT = (*track) -> genParticle_begin();
-           genT != (*track) -> genParticle_end(); ++genT) {
-        cout << "   Gen Track Momentum " << (*genT)->momentum() << endl;    
-      }
-    }     
-  }  
-      
-  cout << "Getting info from track to vertex map" << endl;
-  for (TrackVertexAssociationCollection::const_iterator t2v = tVMap->begin();
-       t2v != tVMap->end(); ++t2v) {
-    TrackingParticleRef        track = t2v -> key;
-    TrackingVertexRefVector vertices = t2v -> val;
-    
-    cout << " Track PDG ID " << track->pdgId() << endl;
-    for (TrackingParticle::g4t_iterator g4T = track -> g4Track_begin();
-         g4T != track -> g4Track_end(); ++g4T) {
-      cout << " G4 Track Momentum " << (*g4T)->momentum() << endl;    
-    }
-    for (TrackingVertexContainer::const_iterator vertex = vertices.begin();
-         vertex != vertices.end(); ++vertex) {
-      cout << "  Vertex Position " << (*vertex)->position() << endl;
-    }     
-  }  
-  cout << "Done with event" << endl;
   
 }
 
