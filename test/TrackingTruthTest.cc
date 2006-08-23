@@ -16,7 +16,13 @@
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
 typedef edm::RefVector< std::vector<TrackingParticle> > TrackingParticleContainer;
-typedef std::vector<TrackingParticle> TrackingParticleCollection;
+typedef std::vector<TrackingParticle>                   TrackingParticleCollection;
+
+typedef TrackingParticleRefVector::iterator               tp_iterator;
+typedef TrackingParticle::g4t_iterator                   g4t_iterator;
+typedef TrackingParticle::genp_iterator                 genp_iterator;
+typedef TrackingVertex::genv_iterator                   genv_iterator;
+typedef TrackingVertex::g4v_iterator                     g4v_iterator;
 
 TrackingTruthTest::TrackingTruthTest(const edm::ParameterSet& conf){
   conf_ = conf;
@@ -33,55 +39,85 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const TrackingParticleCollection *tPC   = TruthTrackContainer.product();
   const TrackingVertexCollection   *tVC   = TruthVertexContainer.product();
 
-  cout << "Found " << tPC->size() << " tracks and " << tVC->size() << " vertices."<<endl;
-// Loop over TrackingParticle's  
-  int count = 0; 
-  
-  cout << "Dumping out sample track info" << endl;
-  for (TrackingParticleCollection::const_iterator t = tPC -> begin(); 
-      t != tPC -> end(); ++t, ++count) {
+// Get and print HepMC event for comparison 
+  edm::Handle<edm::HepMCProduct> hepMC;
+  event.getByLabel("VtxSmeared",hepMC);
+  const edm::HepMCProduct *mcp = hepMC.product();
+  const HepMC::GenEvent *genEvent = mcp -> GetEvent();
+  genEvent -> print();
+
+  cout << "Found " << tPC -> size() << " tracks and " << tVC -> size() << " vertices." <<endl;
+
+// Loop over TrackingParticle's
+
+  cout << "Dumping sample track info" << endl;
+  for (TrackingParticleCollection::const_iterator t = tPC -> begin(); t != tPC -> end(); ++t) {
+    
+    // Compare momenta from sources
+    cout << "T.P.   Track Momentum " << t -> p4() << endl;
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
          hepT !=  t -> genParticle_end(); ++hepT) {
-      cout << " Gen Track PDG ID   " <<  (*hepT)->pdg_id() << endl;    
-      cout << "  Gen Track Momentum " << (*hepT)->momentum() << endl;    
+      cout << " HepMC Track Momentum " << (*hepT)->momentum() << endl;    
     }
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
          g4T !=  t -> g4Track_end(); ++g4T) {
-      cout << "  G4  Track Momentum " << (*g4T)->momentum() << endl;   
+      cout << " Geant Track Momentum " << (*g4T)->momentum() << endl;   
     }
-  }  
-  cout << "  Finished dumping track info" << endl;
- 
-// Loop over TrackingVertex's  
-  
-  cout << "Dumping some vertex info" << endl;
-  int vIndex =0;
-  for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC ->
-      end(); ++v, ++vIndex) {
-    cout << " Vertex Position " << v-> position() << endl; 
 
-/*
-    TrackingParticleRef sourceTrack = v-> sourceTrack();
-    if (sourceTrack.isNonnull()) {
-       for (TrackingParticle::g4t_iterator g4T = (*sourceTrack).g4Track_begin();
-            g4T != (*sourceTrack).g4Track_end(); ++g4T) {
-         cout << " Source Track Momentum " << (*g4T)->momentum() << endl;    
-       }
-    }
-*/
+    // Compare starting and ending points
+    TrackingVertexRef parentV = t -> parentVertex();
+    TrackingVertexRef decayV  = t -> decayVertex();
     
-
-    /*    for (TrackingParticleContainer::iterator t =  v -> tracks_begin(); 
-                                             t != v -> tracks_end(); ++t) {
-      cout << "  Track PDG ID " << (*t)->pdgId() << endl;
-      // Get info from SimTrack
-      for (TrackingParticle::g4t_iterator g4T = (*t) -> g4Track_begin();
-           g4T != (*t) -> g4Track_end(); ++g4T) {
-        cout << "   G4 Track Momentum " << (*g4T)->momentum() << endl;    
-      }
+    cout << " Track start position " << t -> vertex() << endl;
+    if (parentV.isNull()) {
+      cout << "No parent vertex" << endl;
+    } else {  
+      cout << " Parent  vtx position " << parentV -> position() << endl;
     }  
-*/
-  }  
+    if (decayV.isNull()) {
+      cout << "No decay vertex" << endl;
+    } else {  
+      cout << " Decay   vtx position " << decayV  -> position() << endl;
+    }  
+  }  // End loop over TrackingParticle
+ 
+// Loop over TrackingVertex's
+  
+  cout << "Dumping sample vertex info" << endl;
+  for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC -> end(); ++v) {
+    cout << " Vertex Position " << v -> position() << endl; 
+
+    // Get Geant and HepMC positions
+    for (genv_iterator genV = v -> genVertices_begin(); genV != v -> genVertices_end(); ++genV) {
+      cout << "  HepMC vertex position " << (*(*genV)).position() << endl; 
+    }  
+    for (g4v_iterator g4V = v -> g4Vertices_begin(); g4V != v -> g4Vertices_end(); ++g4V) {
+      cout << "  Geant vertex position " << (*(*g4V)).position() << endl; 
+      // Probably empty all the time, currently
+    }  
+    
+    // Loop over daughter track(s)
+    for (tp_iterator iTP = v -> daughterTracks_begin(); iTP != v -> daughterTracks_end(); ++iTP) {
+      cout << "  Daughter starts: " << (*(*iTP)).vertex();
+      for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
+        cout << ", p " << (*g4T)->momentum();    
+      }
+      cout << endl;
+      for (genp_iterator genT  = (*(*iTP)).genParticle_begin(); genT !=
+          (*(*iTP)).genParticle_end(); ++genT) {
+        cout << "   Gen momentum " << (*genT)->momentum();    
+      }
+    }   
+    
+    // Loop over source track(s)
+    for (tp_iterator iTP = v -> sourceTracks_begin(); iTP != v -> sourceTracks_end(); ++iTP) {
+      cout << "  Source   starts: " << (*(*iTP)).vertex();
+      for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
+        cout << ", p " << (*g4T)->momentum();    
+      }
+      cout << endl;
+    }   
+  }  // End loop over TrackingVertex
   
 }
 
