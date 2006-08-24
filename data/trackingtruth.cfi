@@ -1,6 +1,15 @@
 module trackingtruth = TrackingTruthProducer {
   double vertexDistanceCut = 0.003
   vstring HepMCDataLabels = {"VtxSmeared","PythiaSource"} 
+  vstring TrackerHitLabels = {"TrackerHitsTIBLowTof","TrackerHitsTIBHighTof",
+                           "TrackerHitsTIDLowTof","TrackerHitsTIDHighTof",
+			   "TrackerHitsTOBLowTof","TrackerHitsTOBHighTof",
+			   "test","TrackerHitsTECHighTof",
+			   "TrackerHitsPixelBarrelHighTof",
+			   "TrackerHitsPixelBarrelLowTof",
+			   "TrackerHitsPixelEndcapHighTof",
+			   "TrackerHitsPixelEndcapLowTof"}
+  string simHitLabel = "g4SimHits" 
   double volumeRadius = 1200   
   double volumeZ      = 3000
   bool discardOutVolume = false 
