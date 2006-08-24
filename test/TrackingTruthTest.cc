@@ -98,15 +98,15 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     
     // Loop over daughter track(s)
     for (tp_iterator iTP = v -> daughterTracks_begin(); iTP != v -> daughterTracks_end(); ++iTP) {
-      cout << "  Daughter starts: " << (*(*iTP)).vertex();
+      cout << "  Daughter starts:      " << (*(*iTP)).vertex();
       for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
-        cout << ", p " << (*g4T)->momentum();    
+        cout << " p " << (*g4T)->momentum();    
       }
-      cout << endl;
       for (genp_iterator genT  = (*(*iTP)).genParticle_begin(); genT !=
           (*(*iTP)).genParticle_end(); ++genT) {
-        cout << "   Gen momentum " << (*genT)->momentum();    
+        cout << " Gen p " << (*genT)->momentum();    
       }
+      cout << endl;
     }   
     
     // Loop over source track(s)
