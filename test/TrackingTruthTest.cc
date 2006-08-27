@@ -11,7 +11,6 @@
 
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
-#include "SimDataFormats/TrackingAnalysis/interface/TrackVertexMap.h"
 
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
