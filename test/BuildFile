@@ -5,7 +5,7 @@
 <use name=clhep>
 <use name=geant4>
 
-<library file="TrackingTruthTest.cc" name=SimDataFormatsTrackingAnalysis_test>
+<library file="TrackingTruthTest.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
-  <flags SEAL_PLUGIN_NAME="SimDataFormatsTrackingAnalysis_test">
+  <flags SEAL_PLUGIN_NAME="SimGeneralTrackingAnalysis_test">
 </library>
