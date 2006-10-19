@@ -1,10 +1,10 @@
 module trackingtruth = TrackingTruthProducer {
   double vertexDistanceCut = 0.003
-  vstring HepMCDataLabels = {"VtxSmeared","PythiaSource"} 
+  vstring HepMCDataLabels = {"VtxSmeared","PythiaSource","source"} 
   vstring TrackerHitLabels = {"TrackerHitsTIBLowTof","TrackerHitsTIBHighTof",
                            "TrackerHitsTIDLowTof","TrackerHitsTIDHighTof",
 			   "TrackerHitsTOBLowTof","TrackerHitsTOBHighTof",
-			   "test","TrackerHitsTECHighTof",
+			   "TrackerHitsTECHighTof",
 			   "TrackerHitsPixelBarrelHighTof",
 			   "TrackerHitsPixelBarrelLowTof",
 			   "TrackerHitsPixelEndcapHighTof",
