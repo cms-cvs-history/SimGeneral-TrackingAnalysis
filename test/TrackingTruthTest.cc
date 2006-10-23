@@ -54,13 +54,15 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     
     // Compare momenta from sources
     cout << "T.P.   Track Momentum " << t -> p4() << endl;
+    cout << "Hits for this track:  " << t -> trackPSimHit().size() << endl;
+
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
          hepT !=  t -> genParticle_end(); ++hepT) {
       cout << " HepMC Track Momentum " << (*hepT)->momentum() << endl;    
     }
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
          g4T !=  t -> g4Track_end(); ++g4T) {
-      cout << " Geant Track Momentum " << (*g4T)->momentum() << endl;   
+      cout << " Geant Track Momentum " << g4T->momentum() << endl;   
     }
 
     // Compare starting and ending points
@@ -91,7 +93,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << "  HepMC vertex position " << (*(*genV)).position() << endl; 
     }  
     for (g4v_iterator g4V = v -> g4Vertices_begin(); g4V != v -> g4Vertices_end(); ++g4V) {
-      cout << "  Geant vertex position " << (*(*g4V)).position() << endl; 
+      cout << "  Geant vertex position " << (*g4V).position() << endl; 
       // Probably empty all the time, currently
     }  
     
@@ -99,7 +101,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     for (tp_iterator iTP = v -> daughterTracks_begin(); iTP != v -> daughterTracks_end(); ++iTP) {
       cout << "  Daughter starts:      " << (*(*iTP)).vertex();
       for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
-        cout << " p " << (*g4T)->momentum();    
+        cout << " p " << g4T->momentum();    
       }
       for (genp_iterator genT  = (*(*iTP)).genParticle_begin(); genT !=
           (*(*iTP)).genParticle_end(); ++genT) {
@@ -111,8 +113,8 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     // Loop over source track(s)
     for (tp_iterator iTP = v -> sourceTracks_begin(); iTP != v -> sourceTracks_end(); ++iTP) {
       cout << "  Source   starts: " << (*(*iTP)).vertex();
-      for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
-        cout << ", p " << (*g4T)->momentum();    
+      for (g4t_iterator g4T  = (*iTP)->g4Track_begin(); g4T != (*iTP)->g4Track_end(); ++g4T) {
+        cout << ", p " <<  g4T ->momentum();    
       }
       cout << endl;
     }   
