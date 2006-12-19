@@ -9,6 +9,8 @@
 #include "DataFormats/Common/interface/EDProduct.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
+#include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 
@@ -45,16 +47,36 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const HepMC::GenEvent *genEvent = mcp -> GetEvent();
   genEvent -> print();
 
-  cout << "Found " << tPC -> size() << " tracks and " << tVC -> size() << " vertices." <<endl;
+// Dump GEANT tracks and vertices  
+  
+  edm::Handle<CrossingFrame> cf;
+  event.getByType(cf);      
+  std::auto_ptr<MixCollection<SimTrack> >   trackCollection (new MixCollection<SimTrack>(cf.product()));
+  std::auto_ptr<MixCollection<SimVertex> > vertexCollection (new MixCollection<SimVertex>(cf.product()));
 
+  cout << "Dumping GEANT tracks" << endl;
+  cout << "PDG Momentum          Vtx genPart" << endl;
+  for (MixCollection<SimTrack>::MixItr itP = trackCollection->begin(); itP !=  trackCollection->end(); ++itP){
+    cout  << itP -> eventId().bunchCrossing() << " " << itP ->  eventId().event() << " " << (*itP) << endl;
+  }  
+  
+
+  cout << "Dumping GEANT vertices" << endl;
+  cout << "Position         track #" << endl;
+  for (MixCollection<SimVertex>::MixItr itV = vertexCollection->begin(); itV != vertexCollection->end(); ++itV) {
+    cout << itV -> eventId().bunchCrossing() << " " << itV ->  eventId().event() << " " << (*itV) << endl;
+  }  
+         
+  cout << "Found " << tPC -> size() << " tracks and " << tVC -> size() << " vertices." <<endl;
 // Loop over TrackingParticle's
 
   cout << "Dumping sample track info" << endl;
   for (TrackingParticleCollection::const_iterator t = tPC -> begin(); t != tPC -> end(); ++t) {
     
     // Compare momenta from sources
-    cout << "T.P.   Track Momentum " << t -> p4() << endl;
-    cout << "Hits for this track:  " << t -> trackPSimHit().size() << endl;
+    cout << "T.P.   Track Momentum & Event #"  << " " << t -> p4() << " " << 
+        t -> eventId().bunchCrossing() << "." << t -> eventId().event() << endl;
+    cout << " Hits for this track: " << t -> trackPSimHit().size() << endl;
 
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
          hepT !=  t -> genParticle_end(); ++hepT) {
@@ -67,26 +89,25 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
 
     // Compare starting and ending points
     TrackingVertexRef parentV = t -> parentVertex();
-    TrackingVertexRef decayV  = t -> decayVertex();
+//    TrackingVertexRef decayV  = t -> decayVertex();
     
     cout << " Track start position " << t -> vertex() << endl;
     if (parentV.isNull()) {
-      cout << "No parent vertex" << endl;
+      cout << " No parent vertex" << endl;
     } else {  
       cout << " Parent  vtx position " << parentV -> position() << endl;
     }  
-    if (decayV.isNull()) {
-      cout << "No decay vertex" << endl;
-    } else {  
-      cout << " Decay   vtx position " << decayV  -> position() << endl;
-    }  
+    for (TrackingParticle::tv_iterator decayV = t -> decayVertices_begin();
+         decayV !=  t -> decayVertices_end(); ++decayV) {
+      cout << " Decay   vtx position " << (*decayV)  -> position() << endl;
+    }
   }  // End loop over TrackingParticle
  
 // Loop over TrackingVertex's
   
   cout << "Dumping sample vertex info" << endl;
   for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC -> end(); ++v) {
-    cout << " Vertex Position " << v -> position() << endl; 
+    cout << " Vertex Position & Event #" << v -> position() << " " << v -> eventId().bunchCrossing() << "." << v -> eventId().event() << endl; 
 
     // Get Geant and HepMC positions
     for (genv_iterator genV = v -> genVertices_begin(); genV != v -> genVertices_end(); ++genV) {
@@ -102,10 +123,6 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << "  Daughter starts:      " << (*(*iTP)).vertex();
       for (g4t_iterator g4T  = (*(*iTP)).g4Track_begin(); g4T != (*(*iTP)).g4Track_end(); ++g4T) {
         cout << " p " << g4T->momentum();    
-      }
-      for (genp_iterator genT  = (*(*iTP)).genParticle_begin(); genT !=
-          (*(*iTP)).genParticle_end(); ++genT) {
-        cout << " Gen p " << (*genT)->momentum();    
       }
       cout << endl;
     }   
