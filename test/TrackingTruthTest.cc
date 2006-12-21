@@ -47,14 +47,14 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const HepMC::GenEvent *genEvent = mcp -> GetEvent();
   genEvent -> print();
 
-// Dump GEANT tracks and vertices  
-  
   edm::Handle<CrossingFrame> cf;
   event.getByType(cf);      
   std::auto_ptr<MixCollection<SimTrack> >   trackCollection (new MixCollection<SimTrack>(cf.product()));
   std::auto_ptr<MixCollection<SimVertex> > vertexCollection (new MixCollection<SimVertex>(cf.product()));
 
-  cout << "Dumping GEANT tracks" << endl;
+// Dump GEANT tracks and vertices  
+  
+/*  cout << "Dumping GEANT tracks" << endl;
   cout << "PDG Momentum          Vtx genPart" << endl;
   for (MixCollection<SimTrack>::MixItr itP = trackCollection->begin(); itP !=  trackCollection->end(); ++itP){
     cout  << itP -> eventId().bunchCrossing() << " " << itP ->  eventId().event() << " " << (*itP) << endl;
@@ -66,7 +66,8 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   for (MixCollection<SimVertex>::MixItr itV = vertexCollection->begin(); itV != vertexCollection->end(); ++itV) {
     cout << itV -> eventId().bunchCrossing() << " " << itV ->  eventId().event() << " " << (*itV) << endl;
   }  
-         
+*/
+             
   cout << "Found " << tPC -> size() << " tracks and " << tVC -> size() << " vertices." <<endl;
 // Loop over TrackingParticle's
 
@@ -74,7 +75,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   for (TrackingParticleCollection::const_iterator t = tPC -> begin(); t != tPC -> end(); ++t) {
     
     // Compare momenta from sources
-    cout << "T.P.   Track Momentum & Event #"  << " " << t -> p4() << " " << 
+    cout << "T.P.   Track Momentum, q & Event # "  << " " << t -> p4() << " " << t -> charge() << " " <<  
         t -> eventId().bunchCrossing() << "." << t -> eventId().event() << endl;
     cout << " Hits for this track: " << t -> trackPSimHit().size() << endl;
 
@@ -85,6 +86,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
          g4T !=  t -> g4Track_end(); ++g4T) {
       cout << " Geant Track Momentum " << g4T->momentum() << endl;   
+      cout << " Geant Track ID       " << g4T->trackId() << endl;   
     }
 
     // Compare starting and ending points
@@ -127,7 +129,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
       cout << endl;
     }   
     
-    // Loop over source track(s)
+    // Loop over source track(s) (can be multiple since vertices are collapsed)
     for (tp_iterator iTP = v -> sourceTracks_begin(); iTP != v -> sourceTracks_end(); ++iTP) {
       cout << "  Source   starts: " << (*(*iTP)).vertex();
       for (g4t_iterator g4T  = (*iTP)->g4Track_begin(); g4T != (*iTP)->g4Track_end(); ++g4T) {
