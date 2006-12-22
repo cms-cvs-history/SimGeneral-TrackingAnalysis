@@ -1,3 +1,4 @@
+<use name=SimGeneral/TrackingAnalysis>
 <use name=SimDataFormats/TrackingAnalysis>
 <use name=SimDataFormats/Track>
 <use name=SimDataFormats/Vertex>
