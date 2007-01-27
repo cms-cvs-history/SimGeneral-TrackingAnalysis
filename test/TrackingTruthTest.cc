@@ -99,10 +99,11 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     } else {  
       cout << " Parent  vtx position " << parentV -> position() << endl;
     }  
-    for (TrackingParticle::tv_iterator decayV = t -> decayVertices_begin();
-         decayV !=  t -> decayVertices_end(); ++decayV) {
-      cout << " Decay   vtx position " << (*decayV)  -> position() << endl;
-    }
+// Reinstate in 1.4.0
+//   for (TrackingParticle::tv_iterator decayV = t -> decayVertices_begin();
+//        decayV !=  t -> decayVertices_end(); ++decayV) {
+//     cout << " Decay   vtx position " << (*decayV)  -> position() << endl;
+//   }
   }  // End loop over TrackingParticle
  
 // Loop over TrackingVertex's
