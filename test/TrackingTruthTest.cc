@@ -75,8 +75,10 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   for (TrackingParticleCollection::const_iterator t = tPC -> begin(); t != tPC -> end(); ++t) {
     
     // Compare momenta from sources
-    cout << "T.P.   Track Momentum, q & Event # "  << " " << t -> p4() << " " << t -> charge() << " " <<  
-        t -> eventId().bunchCrossing() << "." << t -> eventId().event() << endl;
+    cout << "T.P.   Track Momentum, q , ID, & Event # " 
+          << t -> p4()    << " " << t -> charge() << " "
+          << t -> pdgId() << " " 
+          << t -> eventId().bunchCrossing() << "." << t -> eventId().event() << endl;
     cout << " Hits for this track: " << t -> trackPSimHit().size() << endl;
 
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
@@ -85,8 +87,11 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     }
     for (TrackingParticle::g4t_iterator g4T = t -> g4Track_begin();
          g4T !=  t -> g4Track_end(); ++g4T) {
-      cout << " Geant Track Momentum " << g4T->momentum() << endl;   
-      cout << " Geant Track ID       " << g4T->trackId() << endl;   
+      cout << " Geant Track Momentum  " << g4T->momentum() << endl;   
+      cout << " Geant Track ID & type " << g4T->trackId() << " " << g4T->type() << endl;   
+      if (g4T->type() !=  t -> pdgId()) {
+        cout << " Mismatch b/t TrackingParticle and Geant types" << endl;
+      }
     }
 
     // Compare starting and ending points
