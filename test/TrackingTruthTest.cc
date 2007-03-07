@@ -116,7 +116,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   cout << "Dumping sample vertex info" << endl;
   for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC -> end(); ++v) {
     cout << " Vertex Position & Event #" << v -> position() << " " << v -> eventId().bunchCrossing() << "." << v -> eventId().event() << endl; 
-
+    cout << "  Associated with " << v -> daughterTracks().size() << " tracks" << endl;
     // Get Geant and HepMC positions
     for (genv_iterator genV = v -> genVertices_begin(); genV != v -> genVertices_end(); ++genV) {
       cout << "  HepMC vertex position " << (*(*genV)).position() << endl; 
