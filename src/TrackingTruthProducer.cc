@@ -8,7 +8,7 @@
 #include "DataFormats/SiStripDetId/interface/TIDDetId.h"
 #include "DataFormats/SiStripDetId/interface/TOBDetId.h"
 
-#include "FWCore/Framework/interface/Handle.h"
+#include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -288,7 +288,30 @@ void TrackingTruthProducer::produce(Event &event, const EventSetup &) {
     ++vertexIndex;
   } // Loop on MixCollection<SimVertex>
 
-  edm::LogInfo(MessageCategory) << "TrackingTruth found "  << tVC -> size()
+// Find HepMC vertices, put them in a close TrackingVertex (this could conceivably add the same GenVertex to multiple TrackingVertices)
+/*
+  for (HepMC::GenEvent::vertex_const_iterator genVIt = genEvent->vertices_begin(); genVIt != genEvent->vertices_end(); ++genVIt) {
+    HepMC::FourVector rawPos = (**genVIt).position();
+    // Convert to cm
+    HepMC::FourVector genPos = HepMC::FourVector(rawPos.x()/10.0,rawPos.y()/10.0,rawPos.z()/10.0);
+    for (TrackingVertexCollection::iterator iTrkVtx = tVC -> begin(); iTrkVtx != tVC ->end(); ++iTrkVtx) {
+      HepMC::FourVector simPos = iTrkVtx->position();
+      double distance = (simPos-genPos).v().mag();
+      if (distance <= distanceCut_) {
+        TrackingVertex::genv_iterator tvGenVIt;
+        for (tvGenVIt = iTrkVtx->genVertices_begin(); tvGenVIt != iTrkVtx->genVertices_end(); ++tvGenVIt) {
+          if ((**genVIt).barcode()  == (**tvGenVIt).barcode()) {
+            break;
+          }
+        }
+        if (tvGenVIt== iTrkVtx->genVertices_end() ) {
+          iTrkVtx->addGenVertex(GenVertexRef(hepMC,(**genVIt).barcode())); // Add HepMC vertex
+        }
+      }
+    }
+  }
+*/
+  edm::LogInfo(MessageCategory) << "TrackingTruthProducer found "  << tVC -> size()
                                 << " unique vertices and " << tPC -> size() << " tracks.";
 
 // Put TrackingParticles and TrackingVertices in event
