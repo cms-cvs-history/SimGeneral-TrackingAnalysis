@@ -8,5 +8,5 @@
 
 <library file="TrackingTruthTest.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
-  <flags SEAL_PLUGIN_NAME="SimGeneralTrackingAnalysis_test">
+  <flags EDM_PLUGIN=1>
 </library>
