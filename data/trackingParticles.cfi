@@ -1,4 +1,4 @@
-module trackingParticles = TrackingTruthProducer {
+module trackingtruthprod = TrackingTruthProducer {
   double vertexDistanceCut = 0.003
   vstring HepMCDataLabels = {"VtxSmeared","PythiaSource","source"}
   vstring TrackerHitLabels = {"TrackerHitsPixelBarrelLowTof",
@@ -19,3 +19,8 @@ module trackingParticles = TrackingTruthProducer {
   bool discardOutVolume = false
   bool DiscardHitsFromDeltas = true
 }
+
+module electrontruth = TrackingElectronProducer {
+}
+
+sequence trackingParticles = { trackingtruthprod, electrontruth }
