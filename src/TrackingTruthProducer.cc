@@ -129,8 +129,10 @@ void TrackingTruthProducer::produce(Event &event, const EventSetup &) {
 
     if (genPart >= 0 && signalEvent) {
       gp = genEvent -> barcode_to_particle(genPart);  // Pointer to the generating particle.
-      pdgId = gp -> pdg_id();
-    }
+      if(gp != 0) {
+          pdgId = gp -> pdg_id();
+      }
+   }
     
     math::XYZPoint theVertex;
 
