@@ -41,21 +41,25 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   const TrackingParticleCollection *tPC   = TruthTrackContainer.product();
   const TrackingVertexCollection   *tVC   = TruthVertexContainer.product();
 
-// Get and print HepMC event for comparison
+  // Get and print HepMC event for comparison
   edm::Handle<edm::HepMCProduct> hepMC;
-  event.getByLabel("VtxSmeared",hepMC);
+  event.getByLabel("source",hepMC);
   const edm::HepMCProduct *mcp = hepMC.product();
   const HepMC::GenEvent *genEvent = mcp -> GetEvent();
-  genEvent -> print();
+  //un-comment the next line to print the particles of the generator Event 
+  //genEvent -> print();
 
+
+/* to be fixed
   edm::Handle<CrossingFrame> cf;
   event.getByType(cf);
   std::auto_ptr<MixCollection<SimTrack> >   trackCollection (new MixCollection<SimTrack>(cf.product()));
   std::auto_ptr<MixCollection<SimVertex> > vertexCollection (new MixCollection<SimVertex>(cf.product()));
+  
 
-// Dump GEANT tracks and vertices
+  // Dump GEANT tracks and vertices
 
-/*  cout << "Dumping GEANT tracks" << endl;
+  cout << "Dumping GEANT tracks" << endl;
   cout << "PDG Momentum          Vtx genPart" << endl;
   for (MixCollection<SimTrack>::MixItr itP = trackCollection->begin(); itP !=  trackCollection->end(); ++itP){
     cout  << itP -> eventId().bunchCrossing() << " " << itP ->  eventId().event() << " " << (*itP) << endl;
@@ -76,10 +80,15 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
   for (TrackingParticleCollection::const_iterator t = tPC -> begin(); t != tPC -> end(); ++t) {
 
     // Compare momenta from sources
-    cout << "T.P.   Track Momentum, q , ID, & Event # "
+    cout << "T.P.   Track mass, Momentum, q , ID, & Event # "
+          << t -> mass()  << " " 
           << t -> p4()    << " " << t -> charge() << " "
           << t -> pdgId() << " "
           << t -> eventId().bunchCrossing() << "." << t -> eventId().event() << endl;
+
+    if(t->mass() < 0) cout << "======= WARNING, this particle has negative mass: " << t->mass()  
+			   << " and pdgId: " << t->pdgId() << endl;
+    if(t->pdgId() == 0) cout << "======= WARNING, this particle has pdgId = 0: "     << t->pdgId() << endl;
     cout << " Hits for this track: " << t -> trackPSimHit().size() << endl;
 
     for (TrackingParticle::genp_iterator hepT = t -> genParticle_begin();
@@ -105,6 +114,8 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
     } else {
       cout << " Parent  vtx position " << parentV -> position() << endl;
     }
+
+
 // Reinstate in 1.4.0
 //   for (TrackingParticle::tv_iterator decayV = t -> decayVertices_begin();
 //        decayV !=  t -> decayVertices_end(); ++decayV) {
@@ -112,7 +123,7 @@ void TrackingTruthTest::analyze(const edm::Event& event, const edm::EventSetup& 
 //   }
   }  // End loop over TrackingParticle
 
-// Loop over TrackingVertex's
+  // Loop over TrackingVertex's
 
   cout << "Dumping sample vertex info" << endl;
   for (TrackingVertexCollection::const_iterator v = tVC -> begin(); v != tVC -> end(); ++v) {
