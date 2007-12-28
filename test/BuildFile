@@ -1,4 +1,6 @@
+<use name=FWCore/Framework>
 <use name=SimDataFormats/TrackingAnalysis>
+<use name=SimDataGeneral/TrackingAnalysis>
 <use name=SimDataFormats/Track>
 <use name=SimDataFormats/Vertex>
 <use name=SimDataFormats/HepMCProduct>
@@ -7,5 +9,10 @@
 
 <library file="TrackingTruthTest.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
+  <use name=SimDataFormats/TrackingAnalysis>
+  <use name=SimDataGeneral/TrackingAnalysis>
+  <use name=SimDataFormats/Track>
+  <use name=SimDataFormats/Vertex>
+  <use name=SimDataFormats/HepMCProduct>
   <flags EDM_PLUGIN=1>
 </library>

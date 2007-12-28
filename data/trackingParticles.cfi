@@ -23,4 +23,6 @@ module trackingtruthprod = TrackingTruthProducer {
 module electrontruth = TrackingElectronProducer {
 }
 
-sequence trackingParticles = { trackingtruthprod, electrontruth }
+module mergedtruth = MergedTruthProducer {
+}
+sequence trackingParticles = { trackingtruthprod, electrontruth, mergedtruth }
