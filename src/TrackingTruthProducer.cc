@@ -92,11 +92,11 @@ void TrackingTruthProducer::produce(Event &event, const EventSetup &) {
   std::auto_ptr<MixCollection<PSimHit> > hitCollection(new MixCollection<PSimHit>(cf_simhitvec));
 
   edm::Handle<CrossingFrame<SimTrack> > cf_simtrack;
-  event.getByLabel("mix","g4SimHits",cf_simtrack);
+  event.getByLabel("mix",simHitLabel_,cf_simtrack);
   std::auto_ptr<MixCollection<SimTrack> > trackCollection(new MixCollection<SimTrack>(cf_simtrack.product()));
 
   edm::Handle<CrossingFrame<SimVertex> > cf_simvertex;
-  event.getByLabel("mix","g4SimHits",cf_simvertex);
+  event.getByLabel("mix",simHitLabel_,cf_simvertex);
   std::auto_ptr<MixCollection<SimVertex> > vertexCollection(new MixCollection<SimVertex>(cf_simvertex.product()));
 
 // Create collections of things we will put in event,
