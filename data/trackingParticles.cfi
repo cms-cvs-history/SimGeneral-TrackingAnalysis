@@ -1,4 +1,4 @@
-module trackingtruthprod = TrackingTruthProducer {
+module mergedtruth = TrackingTruthProducer {
   double vertexDistanceCut = 0.003
   vstring HepMCDataLabels = {"VtxSmeared","PythiaSource","source"}
   vstring TrackerHitLabels = {"g4SimHitsTrackerHitsPixelBarrelLowTof",
@@ -18,12 +18,16 @@ module trackingtruthprod = TrackingTruthProducer {
   double volumeZ      = 3000
   bool discardOutVolume = false
   bool DiscardHitsFromDeltas = true
-  bool mergedBremsstrahlung = false 
+  bool mergedBremsstrahlung = true 
 }
 
-module electrontruth = TrackingElectronProducer {}
+sequence trackingParticles = { mergedtruth }
 
-module mergedtruth = MergedTruthProducer {}
+# Uncomment in case of running 3 producer approach
 
-sequence trackingParticles = { trackingtruthprod, electrontruth, mergedtruth }
+# module electrontruth = TrackingElectronProducer {}
+
+# module mergedtruth = MergedTruthProducer {}
+
+# sequence trackingParticles = { trackingtruthprod, electrontruth, mergedtruth }
 
