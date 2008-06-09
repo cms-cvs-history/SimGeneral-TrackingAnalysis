@@ -67,15 +67,15 @@ private:
     std::auto_ptr<MixCollection<PSimHit> > &
   );
 
-  //! Assamble the tracking particles in function of the simtrack collection    
-  void trackingParticleAssambler(
+  //! Assemble the tracking particles in function of the simtrack collection    
+  void trackingParticleAssembler(
     auto_ptr<TrackingParticleCollection> &,
     auto_ptr<MixCollection<SimTrack> > &,
     Handle<edm::HepMCProduct> const &
   );
 
-  //! Assamble the tracking vertexes including parents-daughters relations
-  void trackingVertexAssambler(
+  //! Assemble the tracking vertexes including parents-daughters relations
+  void trackingVertexAssembler(
     auto_ptr<TrackingParticleCollection> &,
     auto_ptr<TrackingVertexCollection> &,
     auto_ptr<MixCollection<SimTrack> > &,  

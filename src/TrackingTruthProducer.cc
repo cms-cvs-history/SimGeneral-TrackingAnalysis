@@ -126,11 +126,11 @@ void TrackingTruthProducer::produce(Event &event, const EventSetup &)
   // Create a one to many association between simtracks and hits
   simTrackHitsAssociator(hitCollection);
 
-  // Assamble the tracking particles in function of the simtrack collection
-  trackingParticleAssambler(tPC, trackCollection, hepMC);
+  // Assemble the tracking particles in function of the simtrack collection
+  trackingParticleAssembler(tPC, trackCollection, hepMC);
   
-  // Assamble the tracking vertexes including parents-daughters relations
-  trackingVertexAssambler(tPC, tVC, trackCollection, vertexCollection, refTPC, refTVC, hepMC);
+  // Assemble the tracking vertexes including parents-daughters relations
+  trackingVertexAssembler(tPC, tVC, trackCollection, vertexCollection, refTPC, refTVC, hepMC);
 
   edm::LogInfo(MessageCategory_) << "TrackingTruthProducer found " << tVC -> size()
                                  << " unique vertices and "        << tPC -> size() 
@@ -184,7 +184,7 @@ void TrackingTruthProducer::simTrackHitsAssociator(
 }
 
 
-void TrackingTruthProducer::trackingParticleAssambler(
+void TrackingTruthProducer::trackingParticleAssembler(
   auto_ptr<TrackingParticleCollection> & tPC,
   auto_ptr<MixCollection<SimTrack> > & tracks,
   Handle<edm::HepMCProduct> const & hepMC
@@ -303,7 +303,7 @@ void TrackingTruthProducer::trackingParticleAssambler(
 }
 
 
-void TrackingTruthProducer::trackingVertexAssambler(
+void TrackingTruthProducer::trackingVertexAssembler(
   auto_ptr<TrackingParticleCollection> & tPC,
   auto_ptr<TrackingVertexCollection> & tVC,
   auto_ptr<MixCollection<SimTrack> > & tracks,  
@@ -530,8 +530,11 @@ void TrackingTruthProducer::mergeBremsstrahlung(
       }
 
       // Add the electron segments from the electron daughter
-      for (TrackingParticle::g4t_iterator isegment = daughter->g4Track_begin(); isegment != daughter->g4Track_end(); ++isegment)
-        track->addG4Track(*isegment);
+      // track must not be the same particle as daughter
+      if(track != daughter)
+	for (TrackingParticle::g4t_iterator isegment = daughter->g4Track_begin(); isegment != daughter->g4Track_end(); ++isegment) {
+	  track->addG4Track(*isegment);
+	}
       
       // Copy all the simhits to the new track  
       for (std::vector<PSimHit>::const_iterator ihit = daughter->pSimHit_begin(); ihit != daughter->pSimHit_end(); ++ihit)
@@ -567,7 +570,7 @@ void TrackingTruthProducer::mergeBremsstrahlung(
   	}
   }   	
 
-  std::cout << "Generating the merged collection." << std::endl;
+  edm::LogInfo(MessageCategory_) << "Generating the merged collection." << std::endl;
 	
   // Reserved the same amount of memory for the merged collections	
   mergedTPC->reserve(tPC->size());
