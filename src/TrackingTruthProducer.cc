@@ -280,9 +280,9 @@ void TrackingTruthProducer::trackingParticleAssembler(
         newlay = LayerFromDetid(detid);
         newdet = detId.subdetId();
 
-	    // Count hits using layers for glued detectors
+	    // Count hits using layers for glued detectors (newlay !=0 excludes Muon layers set to 0 by LayerFromDetid)
 
-	    if (oldlay != newlay || (oldlay==newlay && olddet!=newdet) )
+	if ( (oldlay != newlay || (oldlay==newlay && olddet!=newdet) ) && newlay!=0 )
 	    {
 	      totsimhit++;
         }
@@ -675,8 +675,14 @@ int TrackingTruthProducer::LayerFromDetid(const unsigned int& detid )
 {
   DetId detId = DetId(detid);
   int layerNumber=0;
+  
+  // needed to check only the Tracker layers
+  if( detId.det() != DetId::Tracker )
+    return layerNumber;
+  
+  // Tracker layers
   unsigned int subdetId = static_cast<unsigned int>(detId.subdetId());
-  if ( subdetId == StripSubdetector::TIB)
+  if ( subdetId == StripSubdetector::TIB )
     {
       TIBDetId tibid(detId.rawId());
       layerNumber = tibid.layer();
@@ -686,7 +692,7 @@ int TrackingTruthProducer::LayerFromDetid(const unsigned int& detid )
       TOBDetId tobid(detId.rawId());
       layerNumber = tobid.layer();
     }
-  else if ( subdetId ==  StripSubdetector::TID)
+  else if ( subdetId ==  StripSubdetector::TID )
     {
       TIDDetId tidid(detId.rawId());
       layerNumber = tidid.wheel();
