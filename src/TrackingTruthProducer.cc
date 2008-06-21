@@ -149,12 +149,12 @@ void TrackingTruthProducer::produce(Event &event, const EventSetup &)
     // Merged Bremsstrahlung and copy the new collection into mergedTPC and mergedTVC
     mergeBremsstrahlung(tPC, tVC, mergedTPC, mergedTVC, refMergedTPC, refMergedTVC);  
 
-    edm::LogInfo(MessageCategory_) << "TrackingTruthProducer found " << tVC -> size()
-                                   << " unique vertices and "        << tPC -> size() 
+    edm::LogInfo(MessageCategory_) << "TrackingTruthProducer found " << mergedTVC -> size()
+                                   << " unique vertices and "        << mergedTPC -> size() 
                                    << " tracks in the merged collection.";
 
     // Put TrackingParticles and TrackingVertices in event
-	event.put(mergedTPC,"MergedTrackTruth");
+    event.put(mergedTPC,"MergedTrackTruth");
     event.put(mergedTVC,"MergedTrackTruth");
     event.put(tPC);
     event.put(tVC);
