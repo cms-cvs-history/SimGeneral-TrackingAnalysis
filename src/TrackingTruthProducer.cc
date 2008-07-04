@@ -485,14 +485,13 @@ void TrackingTruthProducer::mergeBremsstrahlung(
   // Merge Bremsstrahlung vertexes
   for (TrackingVertexCollection::iterator iVC = tVC->begin(); iVC != tVC->end(); ++iVC, ++index)
   {
-  	// Check Bremsstrahlung vertex
-  	if ( isBremsstrahlungVertex(*iVC, tPC) )
-  	{
-  	  // Get a pointer to the source track (A Ref<> cannot be use with a product!)	
-  	  TrackingParticle * track = &tPC->at(iVC->sourceTracks_begin()->key());
-  	  // Get a Ref<> to the source track
-  	  TrackingParticleRef trackRef = *iVC->sourceTracks_begin();
-
+    // Check Bremsstrahlung vertex
+    if ( isBremsstrahlungVertex(*iVC, tPC) )
+    {
+      // Get a pointer to the source track (A Ref<> cannot be use with a product!)	
+      TrackingParticle * track = &tPC->at(iVC->sourceTracks_begin()->key());
+      // Get a Ref<> to the source track
+      TrackingParticleRef trackRef = *iVC->sourceTracks_begin();
       // Pointer to electron daughter
       TrackingParticle * daughter = 0;
       // Ref<> to electron daughter
@@ -567,7 +566,7 @@ void TrackingTruthProducer::mergeBremsstrahlung(
             
       // Adding the electron segment tp into the exlusion list
       excludedTP.insert( daughterRef.key() );
-  	}
+    }
   }   	
 
   edm::LogInfo(MessageCategory_) << "Generating the merged collection." << std::endl;
@@ -582,7 +581,7 @@ void TrackingTruthProducer::mergeBremsstrahlung(
   // Copy non-excluded vertices discarding parent & child tracks 
   for (TrackingVertexCollection::const_iterator iVC = tVC->begin(); iVC != tVC->end(); ++iVC, ++index)
   {
-  	if ( excludedTV.find(index) != excludedTV.end() ) continue;
+    if ( excludedTV.find(index) != excludedTV.end() ) continue;
     // Save the new location of the non excluded vertexes (take in consideration those were removed) 
     vertexMap.insert( make_pair(index, mergedTVC->size()) );
     // Copy those vertexes are not excluded
@@ -655,6 +654,10 @@ bool TrackingTruthProducer::isBremsstrahlungVertex(
   // Loop over the daughter particles and counts the number of |electrons|, photons or others        
   for ( TrackingVertex::tp_iterator it = vertex.daughterTracks_begin(); it != vertex.daughterTracks_end(); ++it )
   {
+    // Stronger rejection for looping particles
+    if ( parents[0] == *it )
+      return false;
+
     if ( abs( tPC->at(it->key()).pdgId() ) == 11 )
       nElectrons++;
     else if ( tPC->at(it->key()).pdgId() == 22 )
