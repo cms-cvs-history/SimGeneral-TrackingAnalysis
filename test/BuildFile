@@ -1,5 +1,5 @@
 <use name=clhep>
-<use name=geant4>
+<use name=geant4core>
 
 <library file="TrackingTruthTest.cc,TrackingTruthOutputTest.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
