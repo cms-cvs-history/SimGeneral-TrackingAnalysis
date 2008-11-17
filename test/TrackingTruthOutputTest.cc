@@ -30,7 +30,8 @@ TrackingTruthOutputTest::TrackingTruthOutputTest(const edm::ParameterSet& conf){
   conf_ = conf;
 }
 
-void TrackingTruthOutputTest::analyze(const edm::Event& event, const edm::EventSetup& c){
+void TrackingTruthOutputTest::analyze(const edm::Event& event, const edm::EventSetup& c)
+{
   using namespace std;
 
   edm::Handle<TrackingParticleCollection> mergedPH;
@@ -71,5 +72,3 @@ void TrackingTruthOutputTest::analyze(const edm::Event& event, const edm::EventS
 
 DEFINE_SEAL_MODULE();
 DEFINE_ANOTHER_FWK_MODULE(TrackingTruthOutputTest);
-
-

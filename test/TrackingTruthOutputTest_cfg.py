@@ -10,14 +10,14 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source(
   'PoolSource',
-  fileNames = cms.untracked.vstring('file:Zee_pythia_withTkElectrons.root')
+  fileNames = cms.untracked.vstring('file:TrackingTruthPlayback.root')
 )
 
 process.myOutputTest = cms.EDAnalyzer(
   'TrackingTruthOutputTest',
   trackingTruth = cms.untracked.InputTag('mergedtruth', 'MergedTrackTruth'),
   dumpVertexes = cms.untracked.bool(False),
-  dumpOnlyBremsstrahlung = cms.untracked.bool(True)  
+  dumpOnlyBremsstrahlung = cms.untracked.bool(False)  
 )
 
 process.p = cms.EndPath(process.myOutputTest)
