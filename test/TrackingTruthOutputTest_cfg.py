@@ -5,7 +5,7 @@ process = cms.Process('OutTest')
 process.load('FWCore/MessageService/MessageLogger_cfi')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(5)
+    input = cms.untracked.int32(200)
 )
 
 process.source = cms.Source(
