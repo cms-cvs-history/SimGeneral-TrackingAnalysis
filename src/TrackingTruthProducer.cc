@@ -197,13 +197,13 @@ void TrackingTruthProducer::trackingParticleAssembler(
 
     for (MixCollection<SimTrack>::MixItr itP = tracks->begin(); itP != tracks->end(); ++itP)
     {
-        int                           q = (int)(itP->charge()); // Check this
-        const LorentzVector theMomentum = itP->momentum();
-        unsigned int         simtrackId = itP->trackId();
-        int                     genPart = itP->genpartIndex(); // The HepMC particle number
-        int                     genVert = itP->vertIndex();    // The SimVertex #
-        int                       pdgId = itP->type();
-        int                      status = -99;
+        int q = (int)(itP->charge()); // Check this
+        TrackingParticle::LorentzVector const theMomentum(itP->momentum());
+        unsigned int simtrackId = itP->trackId();
+        int genPart = itP->genpartIndex(); // The HepMC particle number
+        int genVert = itP->vertIndex();    // The SimVertex #
+        int pdgId = itP->type();
+        int status = -99;
 
         EncodedEventId trackEventId     = itP->eventId();
         EncodedTruthId      trackId     = EncodedTruthId(trackEventId,simtrackId);
@@ -224,7 +224,7 @@ void TrackingTruthProducer::trackingParticleAssembler(
             }
         }
 
-        math::XYZPoint theVertex;
+        TrackingParticle::Point theVertex;
 
         if (genVert >= 0)
         { // Add to useful maps
@@ -326,7 +326,7 @@ void TrackingTruthProducer::trackingVertexAssembler(
     for (MixCollection<SimVertex>::MixItr itV = vertexes->begin(); itV != vertexes->end(); ++itV)
     {
         // LorentzVector position = itV -> position();  // Get position of ESV
-        LorentzVector position(itV->position().x(),itV->position().y(),itV->position().z(),itV->position().t());
+        TrackingParticle::LorentzVector position(itV->position().x(),itV->position().y(),itV->position().z(),itV->position().t());
 
         bool inVolume = (position.Pt() < volumeRadius_ && abs(position.z()) < volumeZ_); // In or out of Tracker
 
@@ -419,9 +419,9 @@ void TrackingTruthProducer::trackingVertexAssembler(
                     int indexTP = simTrack_tP[mapTrackId];
                     (*nearestVertex).addDaughterTrack(TrackingParticleRef(refTPC,indexTP));
                     (tPC->at(indexTP)).setParentVertex(TrackingVertexRef(refTVC,indexTV));
-                    const LorentzVector  &v = (*nearestVertex).position();
+                    TrackingParticle::LorentzVector const  &v = (*nearestVertex).position();
 
-                    math::XYZPoint xyz = math::XYZPoint(v.x(), v.y(), v.z());
+                    TrackingParticle::Point xyz(v.x(), v.y(), v.z());
                     double t = v.t();
                     (tPC->at(indexTP)).setVertex(xyz,t);
                 }
@@ -720,4 +720,4 @@ int TrackingTruthProducer::LayerFromDetid(const unsigned int& detid )
     return layerNumber;
 }
 
-//DEFINE_FWK_MODULE(TrackingTruthProducer);
+DEFINE_FWK_MODULE(TrackingTruthProducer);
