@@ -21,7 +21,7 @@ process.outpath = cms.EndPath(process.output)
 
 # Input definition
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
-readFiles = cms.untracked.vstring('rfio:/castor/cern.ch/user/b/benedet/Data219SingleEle/Single_e_pt35_nosmear_9.root')
+readFiles = cms.untracked.vstring('rfio:/castor/cern.ch/user/b/benedet/Data219SingleEle/Single_e_pt4_nosmear_5.root')
 secFiles = cms.untracked.vstring() 
 process.source = cms.Source ("PoolSource",fileNames = readFiles, secondaryFileNames = secFiles)
 
