@@ -26,48 +26,49 @@ typedef TrackingParticle::genp_iterator                 genp_iterator;
 typedef TrackingVertex::genv_iterator                   genv_iterator;
 typedef TrackingVertex::g4v_iterator                     g4v_iterator;
 
-TrackingTruthOutputTest::TrackingTruthOutputTest(const edm::ParameterSet& conf){
-  conf_ = conf;
+TrackingTruthOutputTest::TrackingTruthOutputTest(const edm::ParameterSet& conf)
+{
+    conf_ = conf;
 }
 
 void TrackingTruthOutputTest::analyze(const edm::Event& event, const edm::EventSetup& c)
 {
-  using namespace std;
+    using namespace std;
 
-  edm::Handle<TrackingParticleCollection> mergedPH;
-  edm::Handle<TrackingVertexCollection>   mergedVH;
+    edm::Handle<TrackingParticleCollection> mergedPH;
+    edm::Handle<TrackingVertexCollection>   mergedVH;
 
-  edm::InputTag trackingTruth = conf_.getUntrackedParameter<edm::InputTag>("trackingTruth");
+    edm::InputTag trackingTruth = conf_.getUntrackedParameter<edm::InputTag>("trackingTruth");
 
-  event.getByLabel(trackingTruth, mergedPH);
-  event.getByLabel(trackingTruth, mergedVH);
+    event.getByLabel(trackingTruth, mergedPH);
+    event.getByLabel(trackingTruth, mergedVH);
 
-  if ( conf_.getUntrackedParameter<bool>("dumpVertexes") )
-  {
-    cout << endl << "Dumping merged vertices: " << endl;
-    for (TrackingVertexCollection::const_iterator iVertex = mergedVH->begin(); iVertex != mergedVH->end(); ++iVertex) 
+    if ( conf_.getUntrackedParameter<bool>("dumpVertexes") )
     {
-      cout << endl << *iVertex;
-      cout << "Daughters of this vertex:" << endl;
-      for (tp_iterator iTrack = iVertex->daughterTracks_begin(); iTrack != iVertex->daughterTracks_end(); ++iTrack) 
-        cout << **iTrack;
+        cout << endl << "Dumping merged vertices: " << endl;
+        for (TrackingVertexCollection::const_iterator iVertex = mergedVH->begin(); iVertex != mergedVH->end(); ++iVertex)
+        {
+            cout << endl << *iVertex;
+            cout << "Daughters of this vertex:" << endl;
+            for (tp_iterator iTrack = iVertex->daughterTracks_begin(); iTrack != iVertex->daughterTracks_end(); ++iTrack)
+                cout << **iTrack;
+        }
+        cout << endl;
     }
-    cout << endl;
-  }
 
-  if ( conf_.getUntrackedParameter<bool>("dumpOnlyBremsstrahlung") )
-  {
-     cout << endl << "Dumping only merged tracks: " << endl;
-     for (TrackingParticleCollection::const_iterator iTrack = mergedPH->begin(); iTrack != mergedPH->end(); ++iTrack)
-        if (iTrack->g4Tracks().size() > 1)
-          cout << *iTrack << endl;
-  }
-  else
-  {
-    cout << endl << "Dump of merged tracks: " << endl;
-    for (TrackingParticleCollection::const_iterator iTrack = mergedPH->begin(); iTrack != mergedPH->end(); ++iTrack)
-      cout << *iTrack << endl;
-  }
+    if ( conf_.getUntrackedParameter<bool>("dumpOnlyBremsstrahlung") )
+    {
+        cout << endl << "Dumping only merged tracks: " << endl;
+        for (TrackingParticleCollection::const_iterator iTrack = mergedPH->begin(); iTrack != mergedPH->end(); ++iTrack)
+            if (iTrack->g4Tracks().size() > 1)
+                cout << *iTrack << endl;
+    }
+    else
+    {
+        cout << endl << "Dump of merged tracks: " << endl;
+        for (TrackingParticleCollection::const_iterator iTrack = mergedPH->begin(); iTrack != mergedPH->end(); ++iTrack)
+            cout << *iTrack << endl;
+    }
 }
 
 DEFINE_SEAL_MODULE();

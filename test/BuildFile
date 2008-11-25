@@ -1,7 +1,6 @@
 <use name=clhep>
 <use name=geant4>
-
-<library file="TrackingTruthTest.cc,TrackingTruthOutputTest.cc" name=SimGeneralTrackingAnalysis_test>
+<library file="*.cc" name=SimGeneralTrackingAnalysis_test>
   <use name=FWCore/Framework>
   <use name=SimDataFormats/TrackingAnalysis>
   <use name=SimDataFormats/Track>

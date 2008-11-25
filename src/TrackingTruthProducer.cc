@@ -15,13 +15,13 @@
 
 #include "SimGeneral/TrackingAnalysis/interface/TrackingTruthProducer.h"
 
-
 using namespace edm;
 using namespace std;
 
 typedef edm::Ref<edm::HepMCProduct, HepMC::GenParticle > GenParticleRef;
 typedef edm::Ref<edm::HepMCProduct, HepMC::GenVertex >   GenVertexRef;
 typedef math::XYZTLorentzVectorD    LorentzVector;
+
 
 TrackingTruthProducer::TrackingTruthProducer(const edm::ParameterSet &conf)
 {
@@ -58,6 +58,7 @@ TrackingTruthProducer::TrackingTruthProducer(const edm::ParameterSet &conf)
         produces<TrackingParticleCollection>("MergedTrackTruth");
     }
 }
+
 
 void TrackingTruthProducer::produce(Event &event, const EventSetup &)
 {
@@ -538,8 +539,15 @@ void TrackingTruthProducer::mergeBremsstrahlung(
             for (std::vector<PSimHit>::const_iterator ihit = daughter->pSimHit_begin(); ihit != daughter->pSimHit_end(); ++ihit)
                 track->addPSimHit(*ihit);
 
+            // Make a copy of the decay vertexes of the track
+            TrackingVertexRefVector decayVertices( track->decayVertices() );
+            
             // Clear the decay vertex list
             track->clearDecayVertices();
+
+            // Add the remaining vertexes
+            for (TrackingVertexRefVector::const_iterator idecay = decayVertices.begin(); idecay != decayVertices.end(); ++idecay)
+            	if ( (*idecay).key() != index ) track->addDecayVertex(*idecay);
 
             // Redirect all the decay source vertexes to those in the electron daughter
             for (TrackingParticle::tv_iterator idecay = daughter->decayVertices_begin(); idecay != daughter->decayVertices_end(); ++idecay)
