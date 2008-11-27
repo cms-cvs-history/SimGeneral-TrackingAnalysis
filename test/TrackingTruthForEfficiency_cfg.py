@@ -1,7 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('TrackingTruthPlayback')
+process = cms.Process('TrackingTruthForEfficiency')
 
+# Playback
+process.load("SimGeneral.TrackingAnalysis.Playback_cfi")
 # TrackingTruth
 process.load("SimGeneral.TrackingAnalysis.TrackingParticleSelectionForEfficiency_cfi")
 
@@ -16,7 +18,7 @@ process.output = cms.OutputModule(
   )
 )
 
-process.path = cms.Path(process.trackingParticleSelectionForEfficiency)
+process.path = cms.Path(process.mix*process.trackingParticleSelectionForEfficiency)
 process.outpath = cms.EndPath(process.output)
 
 # Input definition
