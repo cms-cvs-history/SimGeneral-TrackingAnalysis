@@ -5,7 +5,7 @@ process = cms.Process('TrackingTruthForEfficiency')
 # Playback
 process.load("SimGeneral.TrackingAnalysis.Playback_cfi")
 # TrackingTruth
-process.load("SimGeneral.TrackingAnalysis.TrackingParticleSelectionForEfficiency_cfi")
+process.load("SimGeneral.TrackingAnalysis.TrackingParticleSelection_cfi")
 
 # Output definition
 process.output = cms.OutputModule(
@@ -18,7 +18,7 @@ process.output = cms.OutputModule(
   )
 )
 
-process.path = cms.Path(process.mix*process.trackingParticleSelectionForEfficiency)
+process.path = cms.Path(process.mix*process.trackingParticleSelection)
 process.outpath = cms.EndPath(process.output)
 
 # Input definition
