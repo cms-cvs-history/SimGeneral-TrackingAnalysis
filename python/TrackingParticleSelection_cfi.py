@@ -41,11 +41,3 @@ mergedtruth = cms.EDProducer("TrackingTruthProducer",
 
 trackingParticleSelection = cms.Sequence(mergedtruth)
 
-# Uncomment in case of running 3 producer approach
-
-# electrontruth = cms.EDProducer("TrackingElectronProducer")
-
-# mergedtruth = cms.EDProducer("MergedTruthProducer")
-
-# trackingParticles = cms.Sequence(trackingtruthprod*electrontruth*mergedtruth)
-

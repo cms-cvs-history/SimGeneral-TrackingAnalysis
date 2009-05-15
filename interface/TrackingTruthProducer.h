@@ -9,16 +9,16 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CommonTools/RecoAlgos/interface/TrackingParticleSelector.h"
+#include "PhysicsTools/RecoAlgos/interface/TrackingParticleSelector.h"
 
 #include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
 #include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
-#include "SimDataFormats/Vertex/interface/SimVertex.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
+#include "SimDataFormats/Vertex/interface/SimVertex.h"
 
 #include "SimGeneral/TrackingAnalysis/interface/EncodedTruthId.h"
 

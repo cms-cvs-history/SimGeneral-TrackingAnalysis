@@ -12,10 +12,9 @@
 
 #include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
 #include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
+#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
-
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 typedef edm::RefVector< std::vector<TrackingParticle> > TrackingParticleContainer;
 typedef std::vector<TrackingParticle>                   TrackingParticleCollection;
