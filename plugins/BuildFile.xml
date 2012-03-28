@@ -1,3 +1,4 @@
+<use   name="SimGeneral/MixingModule"/>
 <use   name="SimGeneral/TrackingAnalysis"/>
 <library   file="*.cc" name="SimGeneralTrackingAnalysisPlugins">
   <flags   EDM_PLUGIN="1"/>

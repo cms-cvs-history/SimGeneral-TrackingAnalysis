@@ -2,17 +2,15 @@
 #define TrackingAnalysis_TrackingTruthProducer_h
 
 #include <map>
+#include <vector>
 
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "CommonTools/RecoAlgos/interface/TrackingParticleSelector.h"
 
-#include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
-#include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Vertex/interface/SimVertex.h"
@@ -20,118 +18,113 @@
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 
+#include "SimGeneral/MixingModule/interface/DigiAccumulatorMixMod.h"
 #include "SimGeneral/TrackingAnalysis/interface/EncodedTruthId.h"
-#include "SimGeneral/TrackingAnalysis/interface/MuonPSimHitSelector.h"
-#include "SimGeneral/TrackingAnalysis/interface/PixelPSimHitSelector.h"
 #include "SimGeneral/TrackingAnalysis/interface/PSimHitSelector.h"
-#include "SimGeneral/TrackingAnalysis/interface/TrackerPSimHitSelector.h"
 
 #include "Utilities/Timing/interface/TimingReport.h"
 #include "Utilities/Timing/interface/TimerStack.h"
 
-
-
-
-class TrackingTruthProducer : public edm::EDProducer
-{
+class TrackingTruthProducer : public DigiAccumulatorMixMod {
 
 public:
 
-    explicit TrackingTruthProducer( const edm::ParameterSet & );
+    TrackingTruthProducer(edm::ParameterSet const&, edm::EDProducer& mixMod);
+
+    virtual void initializeEvent(edm::Event const&, edm::EventSetup const&);
+    virtual void accumulate(edm::Event const&, edm::EventSetup const&);
+    virtual void accumulate(PileUpEventPrincipal const&, edm::EventSetup const&);
+    virtual void finalizeEvent(edm::Event&, edm::EventSetup const&);
+    virtual void initializeBunchCrossing(edm::Event const&, edm::EventSetup const&, int bunchCrossing);
+    virtual void finalizeBunchCrossing(edm::Event&, edm::EventSetup const&, int bunchCrossing);
 
 private:
 
-    void produce( edm::Event &, const edm::EventSetup & );
+    typedef std::vector<SimTrack>  SimTracks;
+    typedef std::vector<SimVertex> SimVertexes;
 
-    int LayerFromDetid(const unsigned int&);
+    const int         minBunch_;
+    const int         maxBunch_;
+    const std::vector<std::string> dataLabels_;
+    const bool        useMultipleHepMCLabels_;
+    const double      distanceCut_;
+    const double      volumeRadius_;
+    const double      volumeZ_;
+    const bool        mergedBremsstrahlung_;
+    const bool        removeDeadModules_;
+    const std::string simHitLabel_;
 
-    edm::ParameterSet conf_;
+    const std::string MessageCategory_;
 
-    std::vector<std::string> dataLabels_;
-    bool                     useMultipleHepMCLabels_;
-    double                   distanceCut_;
-    std::vector<std::string> hitLabelsVector_;
-    double                   volumeRadius_;
-    double                   volumeZ_;
-    bool                     mergedBremsstrahlung_;
-    bool                     removeDeadModules_;
-    std::string              simHitLabel_;
+    const PSimHitSelector        pSimHitSelector_;
 
-    std::string MessageCategory_;
+    const bool selectorFlag_;
+    const TrackingParticleSelector selector_;
 
     // Related to production
 
     std::vector<edm::Handle<edm::HepMCProduct> > hepMCProducts_;
 
-    PSimHitSelector::PSimHitCollection        pSimHits_;
+    PSimHitSelector::PSimHitCollection pSimHits_;
 
-    PSimHitSelector                           pSimHitSelector_;
-    PixelPSimHitSelector                      pixelPSimHitSelector_;
-    TrackerPSimHitSelector                    trackerPSimHitSelector_;
-    MuonPSimHitSelector                       muonPSimHitSelector_;
-
-    std::auto_ptr<MixCollection<SimTrack> >   simTracks_;
-    std::auto_ptr<MixCollection<SimVertex> >  simVertexes_;
-
-    std::auto_ptr<TrackingParticleCollection> trackingParticles_;
-    std::auto_ptr<TrackingVertexCollection>   trackingVertexes_;
-
-    TrackingParticleRefProd refTrackingParticles_;
-    TrackingVertexRefProd   refTrackingVertexes_;
-
-    std::auto_ptr<TrackingParticleCollection> mergedTrackingParticles_;
-    std::auto_ptr<TrackingVertexCollection>   mergedTrackingVertexes_;
-    TrackingParticleRefProd refMergedTrackingParticles_;
-    TrackingVertexRefProd   refMergedTrackingVertexes_;
+    SimTracks   simTracks_;
+    SimVertexes simVertexes_;
 
     typedef std::map<EncodedEventId, unsigned int> EncodedEventIdToIndex;
     typedef std::map<EncodedTruthId, unsigned int> EncodedTruthIdToIndex;
     typedef std::multimap<EncodedTruthId, unsigned int> EncodedTruthIdToIndexes;
 
-    EncodedEventIdToIndex   eventIdCounter_;
-    EncodedTruthIdToIndexes trackIdToHits_;
-    EncodedTruthIdToIndex   trackIdToIndex_;
-    EncodedTruthIdToIndex   vertexIdToIndex_;
+    int LayerFromDetid(unsigned int const&);
 
-    bool selectorFlag_;
-    TrackingParticleSelector selector_;
+    void accumulateEvent(edm::Event const&, edm::EventSetup const&);
 
     void associator(
-        std::vector<PSimHit> const &,
-        EncodedTruthIdToIndexes &
+        std::vector<PSimHit> const&,
+        EncodedTruthIdToIndexes&
     );
 
     void associator(
-        std::auto_ptr<MixCollection<SimTrack> > const &,
-        EncodedTruthIdToIndex &
+        SimTracks const&,
+        EncodedTruthIdToIndex&
     );
 
     void associator(
-        std::auto_ptr<MixCollection<SimVertex> > const &,
-        EncodedTruthIdToIndex &
+        SimVertexes const&,
+        EncodedTruthIdToIndex&
     );
 
-    void mergeBremsstrahlung();
+    void mergeBremsstrahlung(edm::Event& event,
+                             TrackingParticleCollection& trackingParticles,
+                             TrackingVertexCollection& trackingVertexes,
+                             TrackingParticleCollection& mergedTrackingParticles,
+                             TrackingVertexCollection& mergedTrackingVertexes);
 
     bool isBremsstrahlungVertex(
-        TrackingVertex const & vertex,
-        std::auto_ptr<TrackingParticleCollection> & tPC
+        TrackingVertex const& vertex,
+        TrackingParticleCollection const& tPC
     );
 
-    void createTrackingTruth();
+    void createTrackingTruth(edm::Event& event,
+                             EncodedTruthIdToIndexes const& trackIdToHits,
+                             EncodedTruthIdToIndex& trackIdToIndex,
+                             EncodedTruthIdToIndex& vertexIdToIndex,
+                             TrackingParticleCollection& trackingParticles,
+                             TrackingVertexCollection& trackingVertexes);
 
     bool setTrackingParticle(
-        SimTrack const &,
-        TrackingParticle &
+        SimTrack const&,
+        EncodedTruthIdToIndexes const& trackIdToHits,
+        TrackingParticle&
     );
 
     int setTrackingVertex(
-        SimVertex const &,
-        TrackingVertex &
+        SimVertex const&,
+        EncodedEventIdToIndex& eventIdCounter,
+        TrackingVertexCollection& trackingVertexes,
+        TrackingVertex&
     );
 
-    void addCloseGenVertexes(TrackingVertex &);
+    void addCloseGenVertexes(TrackingVertex&);
 };
-
 
 #endif
