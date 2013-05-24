@@ -139,7 +139,9 @@ namespace
 	class TrackingParticleFactory
 	{
 	public:
-		TrackingParticleFactory( const ::DecayChain& decayChain, const edm::Handle< std::vector<reco::GenParticle> >& hGenParticles, const edm::Handle< std::vector<int> >& hHepMCGenParticleIndices, const std::vector<const PSimHit*>& simHits, double volumeRadius, double volumeZ );
+		TrackingParticleFactory( const ::DecayChain& decayChain, const edm::Handle< std::vector<reco::GenParticle> >& hGenParticles,
+				const edm::Handle< std::vector<int> >& hHepMCGenParticleIndices, const std::vector<const PSimHit*>& simHits,
+				double volumeRadius, double volumeZ, bool allowDifferentProcessTypes );
 		TrackingParticle createTrackingParticle( const DecayChainTrack* pTrack ) const;
 		TrackingVertex createTrackingVertex( const DecayChainVertex* pVertex ) const;
 		bool vectorIsInsideVolume( const math::XYZTLorentzVectorD& vector ) const;
@@ -151,6 +153,7 @@ namespace
 		const double volumeRadius_;
 		const double volumeZ_;
 		std::multimap<unsigned int, size_t> trackIdToHitIndex_; ///< A multimap linking SimTrack::trackId() to the hit index in pSimHits_
+		bool allowDifferentProcessTypeForDifferentDetectors_; ///< See the comment for the same member in TrackingTruthAccumulator
 	};
 
 	/** @brief Handles adding objects to the output collections correctly, and checks to see if a particular object already exists.
@@ -180,13 +183,13 @@ namespace
 
 	/** @brief Utility function copied verbatim from TrackinTruthProducer.
 	 */
-	int LayerFromDetid( const unsigned int & detid );
+	int LayerFromDetid( const DetId& detid );
 
 	/** @brief Adds the supplied TrackingParticle and its parent TrackingVertex to the output collection. Checks to make sure they don't already exist first.
 	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
 	 * @date 12/Nov/2012
 	 */
-	TrackingParticle* addTrackAndParentVertex( ::DecayChainTrack* pDecayTrack, const TrackingParticle& trackingParticle, ::OutputCollectionWrapper* pOutput, const ::TrackingParticleFactory& objectFactory );
+	TrackingParticle* addTrackAndParentVertex( ::DecayChainTrack* pDecayTrack, const TrackingParticle& trackingParticle, ::OutputCollectionWrapper* pOutput );
 
 	/** @brief Creates a TrackingParticle for the supplied DecayChainTrack and adds it to the output if it passes selection. Gets called recursively if adding parents.
 	 * @author Mark Grimes (mark.grimes@bristol.ac.uk)
@@ -221,9 +224,11 @@ TrackingTruthAccumulator::TrackingTruthAccumulator( const edm::ParameterSet & co
 		createMergedCollection_(config.getParameter<bool>("createMergedBremsstrahlung") ),
 		addAncestors_( config.getParameter<bool>("alwaysAddAncestors") ),
 		removeDeadModules_( config.getParameter<bool>("removeDeadModules") ),
-		simHitLabel_( config.getParameter<std::string>("simHitLabel") ),
+		simTrackLabel_( config.getParameter<edm::InputTag>("simTrackCollection") ),
+		simVertexLabel_( config.getParameter<edm::InputTag>("simVertexCollection") ),
 		simHitCollectionConfig_( config.getParameter<edm::ParameterSet>("simHitCollections") ),
-		genParticleLabel_( config.getParameter<edm::InputTag>("genParticleCollection") )
+		genParticleLabel_( config.getParameter<edm::InputTag>("genParticleCollection") ),
+		allowDifferentProcessTypeForDifferentDetectors_( config.getParameter<bool>("allowDifferentSimHitProcesses") )
 {
 	//
 	// Make sure at least one of the merged and unmerged collections have been set
@@ -351,8 +356,8 @@ template<class T> void TrackingTruthAccumulator::accumulateEvent( const T& event
 	edm::Handle< std::vector<reco::GenParticle> > hGenParticles;
 	edm::Handle< std::vector<int> > hGenParticleIndices;
 
-	event.getByLabel( edm::InputTag( simHitLabel_ ), hSimTracks );
-	event.getByLabel( edm::InputTag( simHitLabel_ ), hSimVertices );
+	event.getByLabel( simTrackLabel_, hSimTracks );
+	event.getByLabel( simVertexLabel_, hSimVertices );
 
 	try
 	{
@@ -385,7 +390,7 @@ template<class T> void TrackingTruthAccumulator::accumulateEvent( const T& event
 
 	std::vector<const PSimHit*> simHitPointers;
 	fillSimHits( simHitPointers, event, setup );
-	TrackingParticleFactory objectFactory( decayChain, hGenParticles, hGenParticleIndices, simHitPointers, volumeRadius_, volumeZ_ );
+	TrackingParticleFactory objectFactory( decayChain, hGenParticles, hGenParticleIndices, simHitPointers, volumeRadius_, volumeZ_, allowDifferentProcessTypeForDifferentDetectors_ );
 
 	// While I'm testing, perform some checks.
 	// TODO - drop this call once I'm happy it works in all situations.
@@ -410,17 +415,13 @@ template<class T> void TrackingTruthAccumulator::accumulateEvent( const T& event
 		// fail. The selector_ requires the full TrackingParticle to be made however, which
 		// can be computationally expensive.
 		if( chargedOnly_ && simTrack.charge()==0 ) continue;
-		if( signalOnly_ && (simTrack.eventId().bunchCrossing()==0 && simTrack.eventId().event()==0) ) continue;
+		if( signalOnly_ && (simTrack.eventId().bunchCrossing()!=0 || simTrack.eventId().event()!=0) ) continue;
 
 		// Also perform a check to see if the production vertex is inside the tracker volume (if required).
 		if( ignoreTracksOutsideVolume_ )
 		{
 			const SimVertex& simVertex=hSimVertices->at( pDecayTrack->pParentVertex->simVertexIndex );
-			if( !objectFactory.vectorIsInsideVolume( simVertex.position() ) )
-			{
-//				std::cout << "Vertex " << simVertex.position() << " is outside detector volume" << std::endl;
-				continue;
-			}
+			if( !objectFactory.vectorIsInsideVolume( simVertex.position() ) ) continue;
 		}
 
 
@@ -435,21 +436,25 @@ template<class T> void TrackingTruthAccumulator::fillSimHits( std::vector<const 
 {
 	std::vector<std::string> parameterNames=simHitCollectionConfig_.getParameterNames();
 
-	for( const auto& paramterName : parameterNames )
+	// loop over the different parameter collections. The names of these are unimportant but
+	// usually set to the sub-detectors, e.g. "muon", "pixel" etcetera.
+	for( const auto& parameterName : parameterNames )
 	{
-		std::vector<std::string> collectionNames=simHitCollectionConfig_.getParameter<std::vector<std::string> >(paramterName);
-		for( const auto& collectionName : collectionNames )
+		std::vector<edm::InputTag> collectionTags=simHitCollectionConfig_.getParameter<std::vector<edm::InputTag> >(parameterName);
+
+		for( const auto& collectionTag : collectionTags )
 		{
 			edm::Handle< std::vector<PSimHit> > hSimHits;
-			event.getByLabel( edm::InputTag( simHitLabel_, collectionName ), hSimHits );
+			event.getByLabel( collectionTag, hSimHits );
 
 			// TODO - implement removing the dead modules
 			for( const auto& simHit : *hSimHits )
 			{
 				returnValue.push_back( &simHit );
 			}
-		}
-	}
+
+		} // end of loop over InputTags
+	} // end of loop over parameter names. These are arbitrary but usually "muon", "pixel" etcetera.
 }
 
 
@@ -475,8 +480,11 @@ namespace // Unnamed namespace for things only used in this file
 	//---------------------------------------------------------------------------------
 	//---------------------------------------------------------------------------------
 
-	::TrackingParticleFactory::TrackingParticleFactory( const ::DecayChain& decayChain, const edm::Handle< std::vector<reco::GenParticle> >& hGenParticles, const edm::Handle< std::vector<int> >& hHepMCGenParticleIndices, const std::vector<const PSimHit*>& simHits, double volumeRadius, double volumeZ )
-		: decayChain_(decayChain), hGenParticles_(hGenParticles), simHits_(simHits), volumeRadius_(volumeRadius), volumeZ_(volumeZ)
+	::TrackingParticleFactory::TrackingParticleFactory( const ::DecayChain& decayChain, const edm::Handle< std::vector<reco::GenParticle> >& hGenParticles,
+			const edm::Handle< std::vector<int> >& hHepMCGenParticleIndices, const std::vector<const PSimHit*>& simHits,
+			double volumeRadius, double volumeZ, bool allowDifferentProcessTypes )
+		: decayChain_(decayChain), hGenParticles_(hGenParticles), simHits_(simHits), volumeRadius_(volumeRadius),
+		  volumeZ_(volumeZ), allowDifferentProcessTypeForDifferentDetectors_(allowDifferentProcessTypes)
 	{
 		// Need to create a multimap to get from a SimTrackId to all of the hits in it. The SimTrackId
 		// is an unsigned int.
@@ -531,7 +539,9 @@ namespace // Unnamed namespace for things only used in this file
 			if( hepMCGenParticleIndex>=0 && hGenParticles_.isValid() )
 			{
 				int recoGenParticleIndex=genParticleIndices_[hepMCGenParticleIndex];
-				returnValue.addGenParticle( reco::GenParticleRef( hGenParticles_, recoGenParticleIndex ) );
+				reco::GenParticleRef generatorParticleRef( hGenParticles_, recoGenParticleIndex );
+				pdgId=generatorParticleRef->pdgId();
+				returnValue.addGenParticle( generatorParticleRef );
 			}
 		}
 
@@ -549,8 +559,8 @@ namespace // Unnamed namespace for things only used in this file
 		int particleType=0;
 		int oldLayer = 0;
 		int newLayer = 0;
-		int oldDetector = 0;
-		int newDetector = 0;
+		DetId oldDetector;
+		DetId newDetector;
 
 		for( std::multimap<unsigned int,size_t>::const_iterator iHitIndex=trackIdToHitIndex_.lower_bound( simTrack.trackId() );
 				iHitIndex!=trackIdToHitIndex_.upper_bound( simTrack.trackId() );
@@ -563,26 +573,32 @@ namespace // Unnamed namespace for things only used in this file
 			{
 				processType=pSimHit->processType();
 				particleType=pSimHit->particleType();
+				newDetector=DetId( pSimHit->detUnitId() );
 				init=false;
 			}
+
+			oldDetector=newDetector;
+			newDetector=DetId( pSimHit->detUnitId() );
+
+			// Fast sim seems to have different processType between tracker and muons, so if this flag
+			// has been set allow the processType to change if the detector changes.
+			if( allowDifferentProcessTypeForDifferentDetectors_ && newDetector.det()!=oldDetector.det() ) processType=pSimHit->processType();
 
 			// Check for delta and interaction products discards
 			if( processType==pSimHit->processType() && particleType==pSimHit->particleType() && pdgId==pSimHit->particleType() )
 			{
 				++numberOfHits;
-				if( DetId( (uint32_t)(pSimHit->detUnitId()) ).det() == DetId::Tracker ) ++numberOfTrackerHits;
+				if( newDetector.det() == DetId::Tracker ) ++numberOfTrackerHits;
 
 				oldLayer=newLayer;
-				oldDetector=newDetector;
-				newLayer=LayerFromDetid( pSimHit->detUnitId() );
-				newDetector=DetId( pSimHit->detUnitId() ).subdetId();
+				newLayer=LayerFromDetid( newDetector );
 
 				// Count hits using layers for glued detectors
 				// newlayer !=0 excludes Muon layers set to 0 by LayerFromDetid
-				if( (oldLayer!=newLayer || (oldLayer==newLayer && oldDetector!=newDetector)) && newLayer!=0 ) ++matchedHits;
+				if( (oldLayer!=newLayer || (oldLayer==newLayer && oldDetector.subdetId()!=newDetector.subdetId())) && newLayer!=0 ) ++matchedHits;
 			}
+		} // end of loop over the sim hits for this sim track
 
-		}
 		returnValue.setNumberOfTrackerLayers( matchedHits );
 		returnValue.setNumberOfHits( numberOfHits );
 		returnValue.setNumberOfTrackerHits( numberOfTrackerHits );
@@ -662,7 +678,11 @@ namespace // Unnamed namespace for things only used in this file
 			else throw std::runtime_error( "TrackingTruthAccumulator: Found a track with an invalid parent vertex index." );
 		}
 
-		assert( vertexIdToDecayVertex.size()==vertexCollection.size() && vertexCollection.size()==decayVertexIndex );
+		// This assert was originally in to check the internal consistency of the decay chain. Fast sim
+		// pileup seems to have a load of vertices with no tracks pointing to them though, so fast sim fails
+		// this assert if pileup is added. I don't think the problem is vital however, so if the assert is
+		// taken out these extra vertices are ignored.
+		//assert( vertexIdToDecayVertex.size()==vertexCollection.size() && vertexCollection.size()==decayVertexIndex );
 
 		// I still need to set DecayChainTrack::daughterVertices and DecayChainVertex::pParentTrack.
 		// The information to do this comes from SimVertex::parentIndex. I couldn't do this before
@@ -980,10 +1000,8 @@ namespace // Unnamed namespace for things only used in this file
 	//---------------------------------------------------------------------------------
 	//---------------------------------------------------------------------------------
 
-	int LayerFromDetid( const unsigned int & detid )
+	int LayerFromDetid( const DetId& detId )
 	{
-		DetId detId( detid );
-
 		if( detId.det()!=DetId::Tracker ) return 0;
 
 		int layerNumber=0;
@@ -1024,7 +1042,7 @@ namespace // Unnamed namespace for things only used in this file
 		return layerNumber;
 	}
 
-	TrackingParticle* addTrackAndParentVertex( ::DecayChainTrack* pDecayTrack, const TrackingParticle& trackingParticle, ::OutputCollectionWrapper* pOutput, const ::TrackingParticleFactory& objectFactory )
+	TrackingParticle* addTrackAndParentVertex( ::DecayChainTrack* pDecayTrack, const TrackingParticle& trackingParticle, ::OutputCollectionWrapper* pOutput )
 	{
 		// See if this TrackingParticle has already been created (could be if the DecayChainTracks are
 		// looped over in a funny order). If it has then there's no need to do anything.
@@ -1035,8 +1053,12 @@ namespace // Unnamed namespace for things only used in this file
 			TrackingVertex* pProductionVertex=pOutput->getTrackingVertex( pDecayTrack->pParentVertex );
 			if( pProductionVertex==NULL )
 			{
-				// TrackingVertex doesn't exist yet, so create it.
-				pProductionVertex=pOutput->addTrackingVertex( pDecayTrack->pParentVertex, objectFactory.createTrackingVertex(pDecayTrack->pParentVertex) );
+				// TrackingVertex doesn't exist in the output collection yet. However, it's already been
+				// created in the addTrack() function and a temporary reference to it set in the TrackingParticle.
+				// I'll use that reference to create a copy in the output collection. When the TrackingParticle
+				// is added to the output collection a few lines below the temporary reference to the parent
+				// vertex will be cleared, and the correct one referring to the output collection will be set.
+				pProductionVertex=pOutput->addTrackingVertex( pDecayTrack->pParentVertex, *trackingParticle.parentVertex() );
 			}
 
 
@@ -1066,9 +1088,22 @@ namespace // Unnamed namespace for things only used in this file
 			if( alreadyProcessed ) return;
 		}
 
-		// Create a TrackingParticle. If a selector has been supplied apply it on the new TrackingParticle
-		// and return if it fails.
+		// Create a TrackingParticle.
 		TrackingParticle newTrackingParticle=objectFactory.createTrackingParticle( pDecayChainTrack );
+
+		// The selector checks the impact parameters from the vertex, so I need to have a valid reference
+		// to the parent vertex in the TrackingParticle before that can be called. TrackingParticle needs
+		// an edm::Ref for the parent TrackingVertex though. I still don't know if this is going to be
+		// added to the collection so I can't take it from there, so I need to create a temporary one.
+		// When the addTrackAndParentVertex() is called (assuming it passes selection) it will use the
+		// temporary reference to create a copy of the parent vertex, put that in the output collection,
+		// and then set the reference in the TrackingParticle properly.
+		TrackingVertexCollection dummyCollection; // Only needed to create an edm::Ref
+		dummyCollection.push_back( objectFactory.createTrackingVertex( pDecayChainTrack->pParentVertex ) );
+		TrackingVertexRef temporaryRef( &dummyCollection, 0 );
+		newTrackingParticle.setParentVertex( temporaryRef );
+
+		// If a selector has been supplied apply it on the new TrackingParticle and return if it fails.
 		if( pSelector )
 		{
 			if( !(*pSelector)( newTrackingParticle ) ) return; // Return if the TrackingParticle fails selection
@@ -1082,7 +1117,7 @@ namespace // Unnamed namespace for things only used in this file
 
 		// If creation of the unmerged collection has been turned off in the config this pointer
 		// will be null.
-		if( pUnmergedOutput!=NULL ) addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pUnmergedOutput, objectFactory );
+		if( pUnmergedOutput!=NULL ) addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pUnmergedOutput );
 
 		// If creation of the merged collection has been turned off in the config this pointer
 		// will be null.
@@ -1093,7 +1128,7 @@ namespace // Unnamed namespace for things only used in this file
 
 			if( pBremParentChainTrack!=pDecayChainTrack )
 			{
-				TrackingParticle* pBremParentTrackingParticle=addTrackAndParentVertex( pBremParentChainTrack, newTrackingParticle, pMergedOutput, objectFactory );
+				TrackingParticle* pBremParentTrackingParticle=addTrackAndParentVertex( pBremParentChainTrack, newTrackingParticle, pMergedOutput );
 				// The original particle in the bremsstrahlung decay chain has been
 				// created (or retrieved if it already existed), now copy in the
 				// extra information.
@@ -1111,7 +1146,7 @@ namespace // Unnamed namespace for things only used in this file
 					// Now that pMergedOutput thinks the parent vertex is the brem parent's vertex I can
 					// call this and it will set the TrackingParticle parent vertex correctly to the brem
 					// parent vertex.
-					addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pMergedOutput, objectFactory );
+					addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pMergedOutput );
 				}
 				else if( std::abs( newTrackingParticle.pdgId() ) == 11 )
 				{
@@ -1135,7 +1170,7 @@ namespace // Unnamed namespace for things only used in this file
 			else
 			{
 				// This is not the result of bremsstrahlung so add to the collection as normal.
-				addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pMergedOutput, objectFactory );
+				addTrackAndParentVertex( pDecayChainTrack, newTrackingParticle, pMergedOutput );
 			}
 		} // end of "if( pMergedOutput!=NULL )", i.e. end of "if bremsstrahlung merging is turned on"
 
